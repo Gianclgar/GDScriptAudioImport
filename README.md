@@ -3,7 +3,8 @@ A script for Godot in GDScript for importing .wav and .ogg audio files at runtim
 
 I'm sure there's way more efficient ways to do this, but for me this works so far and it's my little baby.
 
-TODO:
+# TODO:
+
 0. Test with very different wav files in order to see if format parsing works for different chunk sizes (doesn't seem to)
 1. Create a light version with only what is needed to set the AudioStreamSample
 2. Complete the "full version" - Keep it big for learning/referencing purposes
