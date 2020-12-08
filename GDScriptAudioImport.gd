@@ -52,7 +52,7 @@ func loadfile(filepath):
 				print ("fmt OK at bytes " + str(i) + "-" + str(i+3))
 				
 				#get format subchunk size, 4 bytes next to "fmt " are an int32
-				var formatsubchunksize = bytes[i+4] + (bytes[i+5] << 8) + (bytes[i+6] << 16) + (bytes[i+7] << 32)
+				var formatsubchunksize = bytes[i+4] + (bytes[i+5] << 8) + (bytes[i+6] << 16) + (bytes[i+7] << 24)
 				print ("Format subchunk size: " + str(formatsubchunksize))
 				
 				#using formatsubchunk index so it's easier to understand what's going on
@@ -75,13 +75,13 @@ func loadfile(filepath):
 				if channel_num == 2: newstream.stereo = true
 				
 				#get sample rate [Bytes 4-7]
-				var sample_rate = bytes[fsc0+4] + (bytes[fsc0+5] << 8) + (bytes[fsc0+6] << 16) + (bytes[fsc0+7] << 32)
+				var sample_rate = bytes[fsc0+4] + (bytes[fsc0+5] << 8) + (bytes[fsc0+6] << 16) + (bytes[fsc0+7] << 24)
 				print ("Sample rate: " + str(sample_rate))
 				#set our AudioStreamSample mixrate
 				newstream.mix_rate = sample_rate
 				
 				#get byte_rate [Bytes 8-11] because we can
-				var byte_rate = bytes[fsc0+8] + (bytes[fsc0+9] << 8) + (bytes[fsc0+10] << 16) + (bytes[fsc0+11] << 32)
+				var byte_rate = bytes[fsc0+8] + (bytes[fsc0+9] << 8) + (bytes[fsc0+10] << 16) + (bytes[fsc0+11] << 24)
 				print ("Byte rate: " + str(byte_rate))
 				
 				#same with bits*sample*channel [Bytes 12-13]
@@ -93,7 +93,7 @@ func loadfile(filepath):
 				
 				
 			if those4bytes == "data":
-				var audio_data_size = bytes[i+4] + (bytes[i+5] << 8) + (bytes[i+6] << 16) + (bytes[i+7] << 32)
+				var audio_data_size = bytes[i+4] + (bytes[i+5] << 8) + (bytes[i+6] << 16) + (bytes[i+7] << 24)
 				print ("Audio data/stream size is " + str(audio_data_size) + " bytes")
 
 				var data_entry_point = (i+8)
