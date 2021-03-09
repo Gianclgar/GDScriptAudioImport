@@ -117,6 +117,13 @@ func loadfile(filepath):
 		newstream.data = bytes
 		return newstream
 
+	#if file is mp3
+	elif filepath.ends_with(".mp3"):
+		var newstream = AudioStreamMP3.new()
+		newstream.loop = true #set to false or delet this line if you dont want to loop
+		newstream.data = bytes
+		return newstream
+
 	else:
 		print ("ERROR: Wrong filetype or format")
 	file.close()
