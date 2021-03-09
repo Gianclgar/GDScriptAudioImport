@@ -107,13 +107,20 @@ func loadfile(filepath):
 		#get samples and set loop end
 		var samplenum = newstream.data.size() / 4
 		newstream.loop_end = samplenum
-		newstream.loop_mode = 1 #chage to 0 or delete this line if you don't want loop, also check out modes 2 and 3 in the docs
+		newstream.loop_mode = 1 #change to 0 or delete this line if you don't want loop, also check out modes 2 and 3 in the docs
 		return newstream  #:D
 
 	#if file is ogg
 	elif filepath.ends_with(".ogg"):
 		var newstream = AudioStreamOGGVorbis.new()
-		newstream.loop = true #set to false or delet this line if you dont want to loop
+		newstream.loop = true #set to false or delete this line if you don't want to loop
+		newstream.data = bytes
+		return newstream
+
+	#if file is mp3
+	elif filepath.ends_with(".mp3"):
+		var newstream = AudioStreamMP3.new()
+		newstream.loop = true #set to false or delete this line if you don't want to loop
 		newstream.data = bytes
 		return newstream
 

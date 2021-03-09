@@ -1,5 +1,5 @@
 # GDScriptAudioImport
-A script for Godot in GDScript for importing .wav (via parsing the wav header) and .ogg audio files at runtime
+A script for Godot in GDScript for importing .wav (via parsing the wav header), .ogg and .mp3 audio files at runtime.
 
 I'm sure there's way more efficient ways to do this, but for me this works so far and it's my little baby.
 
