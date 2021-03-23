@@ -26,9 +26,35 @@
 
 extends Node
 
-func loadfile(filepath):
+func report_errors(err, filepath):
+	# See: https://docs.godotengine.org/en/latest/classes/class_@globalscope.html#enum-globalscope-error
+	var result_hash = {
+		ERR_FILE_NOT_FOUND: "File: not found",
+		ERR_FILE_BAD_DRIVE: "File: Bad drive error",
+		ERR_FILE_BAD_PATH: "File: Bad path error.",
+		ERR_FILE_NO_PERMISSION: "File: No permission error.",
+		ERR_FILE_ALREADY_IN_USE: "File: Already in use error.",
+		ERR_FILE_CANT_OPEN: "File: Can't open error.",
+		ERR_FILE_CANT_WRITE: "File: Can't write error.",
+		ERR_FILE_CANT_READ: "File: Can't read error.",
+		ERR_FILE_UNRECOGNIZED: "File: Unrecognized error.",
+		ERR_FILE_CORRUPT: "File: Corrupt error.",
+		ERR_FILE_MISSING_DEPENDENCIES: "File: Missing dependencies error.",
+		ERR_FILE_EOF: "File: End of file (EOF) error."
+	}
+	if err in result_hash:
+		print("Error: ", result_hash[err], " ", filepath)
+	else:
+		print("Unknown error with file ", filepath, " error code: ", err)
+
+func loadfile(filepath, verbose=false):
 	var file = File.new()
-	file.open(filepath, File.READ)
+	var err = file.open(filepath, File.READ)
+	if err != OK:
+		report_errors(err, filepath)
+		file.close()
+		return AudioStreamSample.new()
+
 	var bytes = file.get_buffer(file.get_len())
 
 	# if File is wav
