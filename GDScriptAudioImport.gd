@@ -47,7 +47,7 @@ func report_errors(err, filepath):
 	else:
 		print("Unknown error with file ", filepath, " error code: ", err)
 
-func loadfile(filepath, verbose=false):
+func loadfile(filepath):
 	var file = File.new()
 	var err = file.open(filepath, File.READ)
 	if err != OK:
