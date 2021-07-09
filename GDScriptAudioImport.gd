@@ -113,7 +113,8 @@ func loadfile(filepath):
 				#same with bits*sample*channel [Bytes 12-13]
 				var bits_sample_channel = bytes[fsc0+12] + (bytes[fsc0+13] << 8)
 				print ("BitsPerSample * Channel / 8: " + str(bits_sample_channel))
-				#aaaand bits per sample [Bytes 14-15]
+				
+				#aaaand bits per sample/bitrate [Bytes 14-15] - TODO: Handle different bitrates
 				var bits_per_sample = bytes[fsc0+14] + (bytes[fsc0+15] << 8)
 				print ("Bits per sample: " + str(bits_per_sample))
 				
