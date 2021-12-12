@@ -7,7 +7,7 @@ I'm sure there's way more efficient ways to do this, but for me this works so fa
 # Usage instructions and example
 1. Import the script in to your project
 2. When you want to load you can call the class:
-```
+```gdscript
 var music = AudioStreamPlayer.new()
 var audio_loader = AudioLoader.new()
 music.set_stream(audio_loader.loadfile("/path/to/song.ogg"))
