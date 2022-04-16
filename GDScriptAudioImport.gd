@@ -56,15 +56,15 @@ func loadfile(filepath):
 		return AudioStreamSample.new()
 
 	var bytes = file.get_buffer(file.get_len())
-
 	# if File is wav
 	if filepath.ends_with(".wav"):
-
 		var newstream = AudioStreamSample.new()
 
 		#---------------------------
 		#parrrrseeeeee!!! :D
-
+		
+		var bits_per_sample = 0
+		
 		for i in range(0, 100):
 			var those4bytes = str(char(bytes[i])+char(bytes[i+1])+char(bytes[i+2])+char(bytes[i+3]))
 			
@@ -90,6 +90,9 @@ func loadfile(filepath):
 				if format_code == 0: format_name = "8_BITS"
 				elif format_code == 1: format_name = "16_BITS"
 				elif format_code == 2: format_name = "IMA_ADPCM"
+				else: 
+					format_name = "UNKNOWN (trying to interpret as 16_BITS)"
+					format_code = 1
 				print ("Format: " + str(format_code) + " " + format_name)
 				#assign format to our AudioStreamSample
 				newstream.format = format_code
@@ -114,20 +117,25 @@ func loadfile(filepath):
 				var bits_sample_channel = bytes[fsc0+12] + (bytes[fsc0+13] << 8)
 				print ("BitsPerSample * Channel / 8: " + str(bits_sample_channel))
 				
-				#aaaand bits per sample/bitrate [Bytes 14-15] - TODO: Handle different bitrates
-				var bits_per_sample = bytes[fsc0+14] + (bytes[fsc0+15] << 8)
+				#aaaand bits per sample/bitrate [Bytes 14-15]
+				bits_per_sample = bytes[fsc0+14] + (bytes[fsc0+15] << 8)
 				print ("Bits per sample: " + str(bits_per_sample))
 				
-				
 			if those4bytes == "data":
+				assert(bits_per_sample != 0)
+				
 				var audio_data_size = bytes[i+4] + (bytes[i+5] << 8) + (bytes[i+6] << 16) + (bytes[i+7] << 24)
 				print ("Audio data/stream size is " + str(audio_data_size) + " bytes")
 
 				var data_entry_point = (i+8)
 				print ("Audio data starts at byte " + str(data_entry_point))
 				
-				newstream.data = bytes.subarray(data_entry_point, data_entry_point+audio_data_size-1)
+				var data = bytes.subarray(data_entry_point, data_entry_point+audio_data_size-1)
 				
+				if bits_per_sample in [24, 32]:
+					newstream.data = convert_to_16bit(data, bits_per_sample)
+				else:
+					newstream.data = data
 			# end of parsing
 			#---------------------------
 
@@ -154,6 +162,44 @@ func loadfile(filepath):
 	else:
 		print ("ERROR: Wrong filetype or format")
 	file.close()
+
+# Converts .wav data from 24 or 32 bits to 16
+#
+# These conversions are SLOW in GDScript
+# on my one test song, 32 -> 16 was around 3x slower than 24 -> 16
+#
+# I couldn't get threads to help very much
+# They made the 24bit case about 2x faster in my test file
+# And the 32bit case abour 50% slower
+# I don't wanna risk it always being slower on other files
+# And really, the solution would be to handle it in a low-level language
+func convert_to_16bit(data: PoolByteArray, from: int) -> PoolByteArray:
+	print("converting to 16-bit from %d" % from)
+	var time = OS.get_ticks_msec()
+	# 24 bit .wav's are typically stored as integers
+	# so we just grab the 2 most significant bytes and ignore the other
+	if from == 24:
+		var j = 0
+		for i in range(0, data.size(), 3):
+			data[j] = data[i+1]
+			data[j+1] = data[i+2]
+			j += 2
+		data.resize(data.size() * 2 / 3)
+	# 32 bit .wav's are typically stored as floating point numbers
+	# so we need to grab all 4 bytes and interpret them as a float first
+	if from == 32:
+		var spb := StreamPeerBuffer.new()
+		var single_float: float
+		var value: int
+		for i in range(0, data.size(), 4):
+			spb.data_array = data.subarray(i, i+3)
+			single_float = spb.get_float()
+			value = single_float * 32768
+			data[i/2] = value
+			data[i/2+1] = value >> 8
+		data.resize(data.size() / 2)
+	print("Took %f seconds for slow conversion" % ((OS.get_ticks_msec() - time) / 1000.0))
+	return data
 
 
 # ---------- REFERENCE ---------------
