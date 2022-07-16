@@ -66,6 +66,10 @@ func loadfile(filepath):
 		var bits_per_sample = 0
 		var i = 0
 		while true:
+			if i >= len(bytes) - 4: # Failsafe, if there is no data bytes
+				print("Data byte not found")
+				break
+				
 			var those4bytes = str(char(bytes[i])+char(bytes[i+1])+char(bytes[i+2])+char(bytes[i+3]))
 			
 			if those4bytes == "RIFF": 
