@@ -64,8 +64,8 @@ func loadfile(filepath):
 		#parrrrseeeeee!!! :D
 		
 		var bits_per_sample = 0
-		
-		for i in range(0, 100):
+		var i = 0
+		while true:
 			var those4bytes = str(char(bytes[i])+char(bytes[i+1])+char(bytes[i+2])+char(bytes[i+3]))
 			
 			if those4bytes == "RIFF": 
@@ -136,6 +136,10 @@ func loadfile(filepath):
 					newstream.data = convert_to_16bit(data, bits_per_sample)
 				else:
 					newstream.data = data
+				
+				break # the data will be at the end, end searching here
+			
+			i += 1
 			# end of parsing
 			#---------------------------
 
