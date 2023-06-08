@@ -48,17 +48,17 @@ func report_errors(err, filepath):
 		print("Unknown error with file ", filepath, " error code: ", err)
 
 func loadfile(filepath):
-	var file = File.new()
-	var err = file.open(filepath, File.READ)
+	var file = FileAccess.open(filepath, FileAccess.READ)
+	var err = file.get_error()
 	if err != OK:
 		report_errors(err, filepath)
 		file.close()
-		return AudioStreamSample.new()
+		return AudioStreamWAV.new()
 
-	var bytes = file.get_buffer(file.get_len())
+	var bytes = file.get_buffer(file.get_length())
 	# if File is wav
 	if filepath.ends_with(".wav"):
-		var newstream = AudioStreamSample.new()
+		var newstream = AudioStreamWAV.new()
 
 		#---------------------------
 		#parrrrseeeeee!!! :D
@@ -130,7 +130,7 @@ func loadfile(filepath):
 				var data_entry_point = (i+8)
 				print ("Audio data starts at byte " + str(data_entry_point))
 				
-				var data = bytes.subarray(data_entry_point, data_entry_point+audio_data_size-1)
+				var data = bytes.slice(data_entry_point, data_entry_point + audio_data_size)
 				
 				if bits_per_sample in [24, 32]:
 					newstream.data = convert_to_16bit(data, bits_per_sample)
@@ -138,19 +138,21 @@ func loadfile(filepath):
 					newstream.data = data
 			# end of parsing
 			#---------------------------
-
+		
+		#Calculate the size of each sample based on bits_per_sample
+		var sample_size = bits_per_sample / 8
 		#get samples and set loop end
-		var samplenum = newstream.data.size() / 4
+		var samplenum = newstream.data.size() / sample_size
 		newstream.loop_end = samplenum
-		newstream.loop_mode = 1 #change to 0 or delete this line if you don't want loop, also check out modes 2 and 3 in the docs
+		newstream.loop_mode = 0 #change to 0 or delete this line if you don't want loop, also check out modes 2 and 3 in the docs
 		return newstream  #:D
 
 	#if file is ogg
-	elif filepath.ends_with(".ogg"):
-		var newstream = AudioStreamOGGVorbis.new()
-		newstream.loop = true #set to false or delete this line if you don't want to loop
-		newstream.data = bytes
-		return newstream
+	#elif filepath.ends_with(".ogg"):
+	#	var newstream = AudioStreamOGGVorbis.new()
+	#	newstream.loop = true #set to false or delete this line if you don't want to loop
+	#	newstream.data = bytes
+	#	return newstream
 
 	#if file is mp3
 	elif filepath.ends_with(".mp3"):
@@ -173,11 +175,9 @@ func loadfile(filepath):
 # And the 32bit case abour 50% slower
 # I don't wanna risk it always being slower on other files
 # And really, the solution would be to handle it in a low-level language
-func convert_to_16bit(data: PoolByteArray, from: int) -> PoolByteArray:
+func convert_to_16bit(data: PackedByteArray, from: int) -> PackedByteArray:
 	print("converting to 16-bit from %d" % from)
-	var time = OS.get_ticks_msec()
-	# 24 bit .wav's are typically stored as integers
-	# so we just grab the 2 most significant bytes and ignore the other
+	var time = Time.get_ticks_msec()
 	if from == 24:
 		var j = 0
 		for i in range(0, data.size(), 3):
@@ -185,22 +185,20 @@ func convert_to_16bit(data: PoolByteArray, from: int) -> PoolByteArray:
 			data[j+1] = data[i+2]
 			j += 2
 		data.resize(data.size() * 2 / 3)
-	# 32 bit .wav's are typically stored as floating point numbers
-	# so we need to grab all 4 bytes and interpret them as a float first
 	if from == 32:
 		var spb := StreamPeerBuffer.new()
 		var single_float: float
 		var value: int
 		for i in range(0, data.size(), 4):
-			spb.data_array = data.subarray(i, i+3)
+			var sub_array = data.slice(i, i+4)
+			spb.data_array = PackedByteArray(sub_array)
 			single_float = spb.get_float()
 			value = single_float * 32768
 			data[i/2] = value
 			data[i/2+1] = value >> 8
 		data.resize(data.size() / 2)
-	print("Took %f seconds for slow conversion" % ((OS.get_ticks_msec() - time) / 1000.0))
+	print("Took %f seconds for slow conversion" % ((Time.get_ticks_msec() - time) / 1000.0))
 	return data
-
 
 # ---------- REFERENCE ---------------
 # note: typical values doesn't always match
