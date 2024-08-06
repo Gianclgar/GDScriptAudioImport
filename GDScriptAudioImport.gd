@@ -202,7 +202,7 @@ func convert_to_16bit(data: PoolByteArray, from: int) -> PoolByteArray:
 		for i in range(0, data.size(), 4):
 			spb.data_array = data.subarray(i, i+3)
 			single_float = spb.get_float()
-			value = single_float * 32768
+			value = clamp(single_float * 32768, -32768, 32767)
 			data[i/2] = value
 			data[i/2+1] = value >> 8
 		data.resize(data.size() / 2)
