@@ -136,7 +136,7 @@ func loadfile(filepath):
 				
 				var data = bytes.subarray(data_entry_point, data_entry_point+audio_data_size-1)
 				
-				if bits_per_sample in [24, 32]:
+				if bits_per_sample in [8, 24, 32]:
 					newstream.data = convert_to_16bit(data, bits_per_sample)
 				else:
 					newstream.data = data
@@ -171,7 +171,7 @@ func loadfile(filepath):
 		print ("ERROR: Wrong filetype or format")
 	file.close()
 
-# Converts .wav data from 24 or 32 bits to 16
+# Converts .wav data from 8, 24 or 32 bits to 16
 #
 # These conversions are SLOW in GDScript
 # on my one test song, 32 -> 16 was around 3x slower than 24 -> 16
@@ -184,6 +184,13 @@ func loadfile(filepath):
 func convert_to_16bit(data: PoolByteArray, from: int) -> PoolByteArray:
 	print("converting to 16-bit from %d" % from)
 	var time = OS.get_ticks_msec()
+	#8 bit so we just scale it into two bytes:
+	if from == 8:
+		var spb := StreamPeerBuffer.new()
+		spb.resize(data.size() * 2)
+		for i in range(0, data.size(), 1):
+			spb.put_16((data[i] * 65535) / 255 - 32768)
+		return spb.data_array
 	# 24 bit .wav's are typically stored as integers
 	# so we just grab the 2 most significant bytes and ignore the other
 	if from == 24:
